@@ -1,8 +1,9 @@
-from router.intent_router import route_intent
+﻿from router.intent_router import route_intent
 from retrievers.daily_retriever import get_daily_retriever
 from retrievers.wishlist_retriever import get_wishlist_retriever
 from agents.insight_agent import generate_insight
 from api.api_client import post_daily_log, post_wishlist
+import shlex
 
 def is_daily_log_command(text: str) -> bool:
     return text.startswith("/log")
@@ -59,7 +60,7 @@ def parse_log_command(text: str) -> dict:
     """
     data = {}
 
-    parts = text.replace("/log", "").strip().split()
+    parts = shlex.split(text.replace("/log", "").strip())
     for part in parts:
         if "=" in part:
             key, val = part.split("=", 1)
@@ -80,7 +81,7 @@ def parse_wishlist_command(text: str) -> dict:
     """
     data = {}
 
-    parts = text.replace("/wishlist", "").strip().split()
+    parts = shlex.split(text.replace("/wishlist", "").strip())
     for part in parts:
         if "=" in part:
             key, val = part.split("=", 1)

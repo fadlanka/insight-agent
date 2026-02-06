@@ -22,8 +22,12 @@ class DailyLog(BaseModel):
 
 class WishlistItem(BaseModel):
 	id: Optional[str] = None
-	title: str
-	notes: Optional[str] = None
+	item: Optional[str] = None
+	harga: Optional[int] = None
+	target_bulan: Optional[int] = None
+	prioritas: Optional[str] = None
+	alasan: Optional[str] = None
+	kebiasaan_terkait: Optional[str] = None
 	created_at: Optional[datetime] = None
 
 
@@ -76,12 +80,22 @@ def list_wishlists():
 
 
 @app.post("/wishlists", response_model=WishlistItem)
-def create_wishlist_item(payload: WishlistItem):
+def create_wishlist_item(payload: Dict[str, Any]):
+	item = payload.get("item") or payload.get("title")
+	if not item:
+		raise HTTPException(status_code=422, detail="Field 'item' is required.")
 	now = datetime.utcnow().isoformat()
 	fname = f"{now.replace(':', '-')}.json"
-	payload_dict = payload.dict()
-	payload_dict.setdefault("created_at", now)
-	payload_dict.setdefault("id", fname)
+	payload_dict = {
+		"item": item,
+		"harga": payload.get("harga"),
+		"target_bulan": payload.get("target_bulan") or payload.get("target"),
+		"prioritas": payload.get("prioritas"),
+		"alasan": payload.get("alasan"),
+		"kebiasaan_terkait": payload.get("kebiasaan_terkait") or payload.get("kebiasaan"),
+		"created_at": payload.get("created_at") or now,
+		"id": payload.get("id") or fname,
+	}
 	path = os.path.join(WISHLIST_DIR, fname)
 	with open(path, "w", encoding="utf-8") as f:
 		json.dump(payload_dict, f, default=str)

@@ -9,12 +9,14 @@ if ROOT_DIR not in sys.path:
 from langchain_ollama import OllamaEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_community.document_loaders import TextLoader
+from langchain_community.document_loaders import DirectoryLoader, TextLoader
 from config.settings import DAILY_DB_PATH
 
-def ingest_daily_log(file_path):
-    loader = TextLoader(file_path)
+def ingest_daily_log(dir_path):
+    loader = DirectoryLoader(dir_path, glob="*.json", loader_cls=TextLoader)
     docs = loader.load()
+    if not docs:
+        raise FileNotFoundError(f"No JSON files found in {dir_path}")
 
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=500,
@@ -27,4 +29,4 @@ def ingest_daily_log(file_path):
     db.save_local(DAILY_DB_PATH)
 
 if __name__ == "__main__":
-    ingest_daily_log("data/daily_logs/sample.txt")
+    ingest_daily_log("data/daily_logs")
