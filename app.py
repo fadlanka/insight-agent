@@ -2,6 +2,7 @@
 from retrievers.daily_retriever import get_daily_retriever
 from retrievers.wishlist_retriever import get_wishlist_retriever
 from agents.insight_agent import generate_insight
+from router.log_interpreter import interpret_log
 from api.api_client import post_daily_log, post_wishlist
 import shlex
 
@@ -17,16 +18,25 @@ def main():
 
     # === COMMAND MODE (WRITE) ===
     if is_daily_log_command(question):
-        payload = parse_log_command(question)
-        result = post_daily_log(payload)
-        print("AI: Daily log tersimpan ✅")
+        message = question.replace("/log", "").strip()
+        interpreted = interpret_log(message)
+        result = post_daily_log(interpreted)
+        from agents.log_response_agent import generate_log_response
+
+        response = generate_log_response(
+            interpreted["category"],
+            interpreted["content"]
+        )
+
+        print("AI:", response)
         print(result)
         return
+
 
     if is_wishlist_command(question):
         payload = parse_wishlist_command(question)
         result = post_wishlist(payload)
-        print("AI: Wishlist item tersimpan ✅")
+        print("AI: Wishlist item tersimpan ?")
         print(result)
         return
 
@@ -53,26 +63,6 @@ def main():
     answer = generate_insight(context, question)
     print("\nAI:", answer)
 
-def parse_log_command(text: str) -> dict:
-    """
-    Format:
-    /log sholat=4 keuangan="boros kopi" tidur=5 mood=capek catatan="ngantuk"
-    """
-    data = {}
-
-    parts = shlex.split(text.replace("/log", "").strip())
-    for part in parts:
-        if "=" in part:
-            key, val = part.split("=", 1)
-            data[key] = val.strip('"')
-
-    return {
-        "sholat": int(data.get("sholat", 0)),
-        "keuangan": data.get("keuangan", ""),
-        "tidur_jam": float(data.get("tidur", 0)),
-        "mood": data.get("mood", ""),
-        "catatan": data.get("catatan", "")
-    }
 
 def parse_wishlist_command(text: str) -> dict:
     """

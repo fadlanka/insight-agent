@@ -19,7 +19,7 @@ def ingest_daily_log(dir_path):
         raise FileNotFoundError(f"No JSON files found in {dir_path}")
 
     splitter = RecursiveCharacterTextSplitter(
-        chunk_size=500,
+        chunk_size=700,
         chunk_overlap=100
     )
     chunks = splitter.split_documents(docs)

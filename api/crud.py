@@ -10,14 +10,14 @@ app = FastAPI(title="Personal Insight Agent API", version="0.1.0")
 DAILY_LOG_DIR = "data/daily_logs"
 WISHLIST_DIR = "data/wishlists"
 
-os.makedirs(DAILY_LOG_DIR, exist_ok=True)
+os.makedirs(DAILY_LOG_DIR, exist_ok=True)	
 os.makedirs(WISHLIST_DIR, exist_ok=True)
 
 
-class DailyLog(BaseModel):
-	id: Optional[str] = None
-	content: Dict[str, Any]
-	created_at: Optional[datetime] = None
+class DailyLogEvent(BaseModel):
+    category: str
+    content: str
+    raw_text: str
 
 
 class WishlistItem(BaseModel):
@@ -36,7 +36,7 @@ def health():
 	return {"status": "ok"}
 
 
-@app.get("/daily_logs", response_model=List[DailyLog])
+@app.get("/daily_logs", response_model=List[Dict[str, Any]])
 def list_daily_logs():
 	items: List[dict] = []
 	for fname in sorted(os.listdir(DAILY_LOG_DIR)):
@@ -51,17 +51,33 @@ def list_daily_logs():
 	return items
 
 
-@app.post("/daily_logs", response_model=DailyLog)
-def create_daily_log(payload: Dict[str, Any]):
-	now = datetime.utcnow().isoformat()
-	fname = f"{now.replace(':', '-')}.json"
-	payload_dict: Dict[str, Any] = {"content": payload}
-	payload_dict.setdefault("created_at", now)
-	payload_dict.setdefault("id", fname)
-	path = os.path.join(DAILY_LOG_DIR, fname)
-	with open(path, "w", encoding="utf-8") as f:
-		json.dump(payload_dict, f, default=str)
-	return payload_dict
+@app.post("/daily_logs")
+def append_daily_log(event: DailyLogEvent):
+    date = datetime.now().strftime("%Y-%m-%d")
+    time = datetime.now().strftime("%H:%M")
+
+    filename = f"{DAILY_LOG_DIR}/{date}.txt"
+
+    entry = f"""
+			[TIME: {time}]
+			CATEGORY: {event.category}
+			CONTENT: {event.content}
+			RAW_TEXT: {event.raw_text}
+			""".strip() + "\n\n"
+
+    # kalau file belum ada, tulis header dulu
+    if not os.path.exists(filename):
+        with open(filename, "w", encoding="utf-8") as f:
+            f.write(f"TYPE: daily_log\nDATE: {date}\n\n")
+
+    with open(filename, "a", encoding="utf-8") as f:
+        f.write(entry)
+
+    return {
+        "status": "ok",
+        "date": date,
+        "category": event.category
+    }
 
 
 @app.get("/wishlists", response_model=List[WishlistItem])
@@ -100,4 +116,5 @@ def create_wishlist_item(payload: Dict[str, Any]):
 	with open(path, "w", encoding="utf-8") as f:
 		json.dump(payload_dict, f, default=str)
 	return payload_dict
+
 

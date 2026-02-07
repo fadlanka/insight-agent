@@ -1,0 +1,18 @@
+TYPE: daily_log
+DATE: 2026-02-07
+
+[TIME: 15:20]
+			CATEGORY: other
+			CONTENT: saya solat asar
+			RAW_TEXT: saya solat asar
+
+[TIME: 15:26]
+			CATEGORY: aktivitas
+			CONTENT: Completed task successfully
+			RAW_TEXT: saya baru selesaai mengerjakan tugas
+
+[TIME: 15:30]
+			CATEGORY: ibadah
+			CONTENT: Performed afternoon prayer
+			RAW_TEXT: saya solat asar
+
