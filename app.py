@@ -4,6 +4,10 @@ from retrievers.wishlist_retriever import get_wishlist_retriever
 from agents.insight_agent import generate_insight
 from router.log_interpreter import interpret_log
 from api.api_client import post_daily_log, post_wishlist
+from router.wishlist_interpreter import interpret_wishlist
+from agents.wishlist_response_agent import generate_wishlist_response
+from agents.log_response_agent import generate_log_response
+from ingestions.auto_ingest import ingest_daily, ingest_wishlist
 import shlex
 
 def is_daily_log_command(text: str) -> bool:
@@ -17,12 +21,15 @@ def main():
     question = input("You: ")
 
     # === COMMAND MODE (WRITE) ===
-    if is_daily_log_command(question):
+    if question.startswith("/log"):
         message = question.replace("/log", "").strip()
+
         interpreted = interpret_log(message)
         result = post_daily_log(interpreted)
-        from agents.log_response_agent import generate_log_response
 
+        # === AUTO INGEST ===
+        ingest_daily()
+        print("AI: Data dicatat dan diindeks ulang 🔄")
         response = generate_log_response(
             interpreted["category"],
             interpreted["content"]
@@ -33,10 +40,23 @@ def main():
         return
 
 
-    if is_wishlist_command(question):
-        payload = parse_wishlist_command(question)
-        result = post_wishlist(payload)
-        print("AI: Wishlist item tersimpan ?")
+
+    if question.startswith("/wishlist"):
+        message = question.replace("/wishlist", "").strip()
+
+        interpreted = interpret_wishlist(message)
+        result = post_wishlist(interpreted)
+
+        # === AUTO INGEST ===
+        ingest_wishlist()
+        print("AI: Data dicatat dan diindeks ulang 🔄")
+        response = generate_wishlist_response(
+            interpreted["event"],
+            interpreted["item"],
+            interpreted["content"]
+        )
+
+        print("AI:", response)
         print(result)
         return
 
@@ -85,6 +105,7 @@ def parse_wishlist_command(text: str) -> dict:
         "alasan": data.get("alasan", ""),
         "kebiasaan_terkait": data.get("kebiasaan", "")
     }
+
 
 
 if __name__ == "__main__":

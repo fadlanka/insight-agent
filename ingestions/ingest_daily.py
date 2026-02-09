@@ -13,10 +13,13 @@ from langchain_community.document_loaders import DirectoryLoader, TextLoader
 from config.settings import DAILY_DB_PATH
 
 def ingest_daily_log(dir_path):
-    loader = DirectoryLoader(dir_path, glob="*.json", loader_cls=TextLoader)
-    docs = loader.load()
+    # Support legacy JSON logs and new TXT logs
+    json_loader = DirectoryLoader(dir_path, glob="*.json", loader_cls=TextLoader)
+    txt_loader = DirectoryLoader(dir_path, glob="*.txt", loader_cls=TextLoader)
+    docs = json_loader.load() + txt_loader.load()
     if not docs:
-        raise FileNotFoundError(f"No JSON files found in {dir_path}")
+        # No data yet; skip ingestion instead of crashing
+        return
 
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=700,

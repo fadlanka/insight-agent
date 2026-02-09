@@ -1,0 +1,23 @@
+TYPE: daily_log
+DATE: 2026-02-09
+
+[TIME: 10:25]
+            CATEGORY: mood
+            CONTENT: Feeling bad today
+            RAW_TEXT: saya lagi badmood nih
+
+[TIME: 16:02]
+            CATEGORY: mood
+            CONTENT: Bad mood detected
+            RAW_TEXT: saya lagi badmood nih
+
+[TIME: 16:02]
+            CATEGORY: other
+            CONTENT: saya lagi badmood nih
+            RAW_TEXT: saya lagi badmood nih
+
+[TIME: 16:06]
+            CATEGORY: mood
+            CONTENT: Feeling unhappy now
+            RAW_TEXT: saya lagi badmood nih
+
