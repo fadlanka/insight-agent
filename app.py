@@ -8,7 +8,11 @@ from router.wishlist_interpreter import interpret_wishlist
 from agents.wishlist_response_agent import generate_wishlist_response
 from agents.log_response_agent import generate_log_response
 from ingestions.auto_ingest import ingest_daily, ingest_wishlist
+from mcp.policy import MCPPolicy
 import shlex
+
+mcp = MCPPolicy()
+
 
 def is_daily_log_command(text: str) -> bool:
     return text.startswith("/log")
@@ -22,6 +26,11 @@ def main():
 
     # === COMMAND MODE (WRITE) ===
     if question.startswith("/log"):
+        if not mcp.allow_write(question):
+            confirm = input("AI: Aku perlu izin sebelum mencatat ini. Lanjutkan? (y/n) ")
+            if not mcp.allow_write(question, confirmed=confirm.strip().lower() in ["y", "ya", "yes"]):
+                print("AI: Oke, tidak disimpan.")
+                return
         message = question.replace("/log", "").strip()
 
         interpreted = interpret_log(message)
@@ -42,6 +51,11 @@ def main():
 
 
     if question.startswith("/wishlist"):
+        if not mcp.allow_write(question):
+            confirm = input("AI: Aku perlu izin sebelum mencatat ini. Lanjutkan? (y/n) ")
+            if not mcp.allow_write(question, confirmed=confirm.strip().lower() in ["y", "ya", "yes"]):
+                print("AI: Oke, tidak disimpan.")
+                return
         message = question.replace("/wishlist", "").strip()
 
         interpreted = interpret_wishlist(message)
